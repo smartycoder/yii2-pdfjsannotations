@@ -1,0 +1,337 @@
+<?php
+
+/* @var $this yii\web\View */
+/* @var $pdfFilePath string */
+
+$js = <<<JS
+ELEMENTS = {};
+PAGE = 0;
+var scale = 0;
+var pdf = null;
+
+
+function initPdf(scale){
+    pdf = new PDFAnnotate("pdf-container", "$pdfFilePath", {
+      onPageUpdated(page, oldData, newData) {
+          PAGE = page;
+          console.log(page, oldData, newData);
+      },
+      ready() {
+        console.log("Plugin initialized successfully");
+      },
+      scale: scale,
+      pageImageCompression: 'MEDIUM', // FAST, MEDIUM, SLOW(Helps to control the new PDF file size)
+    });
+}
+
+initPdf(1.33);
+
+$("select.scale").change(function (){
+    $('#pdf-container').html('');
+    scale = parseFloat($("select.scale :selected").val());
+    initPdf(scale); 
+});
+
+
+function initCanvasEvents(canvas, currentPage){
+     $.each(ELEMENTS, function(i,e){
+         if(currentPage+1 == e.page){
+            rect = new fabric.Rect({
+                left: (e.left / e.scale) * scale,
+                top: (e.top / e.scale) * scale,
+                originX: e.originX,
+                originY: e.originY,
+                x: e.x,
+                y: e.y,
+                width: ((e.width * e.scaleX) / e.scale) * scale - 2,
+                height: ((e.height * e.scaleY) / e.scale) * scale - 2,
+                angle: 0,
+                hasControls: false,
+                selectable: false,
+                stroke: 'rgba(255,0,0,1)',
+                strokeWidth: 2,
+                rx:2,
+                ry:2,
+                fill: 'rgba(0,0,0,0)',
+                transparentCorners: false,
+                hasRotatingPoint : false,
+            });
+            
+            var text = new fabric.Textbox(e._objects[1].text, {
+                left: rect.left + 5,
+                top: rect.top + 5,
+                fontSize: 16 *scale,
+                hasControls: false,
+                selectable: false,
+                width: ((e.width * e.scaleX) / e.scale) * scale - 2,
+                height: ((e.height * e.scaleY) / e.scale) * scale - 2,
+                
+                fill: '#000000'
+            });
+            canvas.add(rect);
+            canvas.add(text);
+        
+            var group = new fabric.Group([rect, text]);
+            group.selectable = false;
+            group.hasControls = true;
+            
+            group.page = e.page;
+            group.scale = scale;
+            group.uuid = e.uuid;
+            canvas.add(group);
+            
+            ELEMENTS[i] = group;
+         }
+    });
+    canvas.renderAll();
+    hideRotatingPointsForAllObjects(canvas);
+    
+    var rect, isDown, origX, origY, isDragged;
+    
+    canvas.on('mouse:down', function(o){
+        if(o.target == null){
+            isDown = true;
+            var pointer = canvas.getPointer(o.e);
+            origX = pointer.x;
+            origY = pointer.y;
+            rect = new fabric.Rect({
+                left: origX,
+                top: origY,
+                originX: 'left',
+                originY: 'top',
+                width: pointer.x-origX,
+                height: pointer.y-origY,
+                angle: 0,              
+                hasControls: false,
+                selectable: false,
+                stroke: 'rgba(255,0,0,1)',
+                strokeWidth: 2,
+                rx:2,
+                ry:2,
+                fill: 'rgba(0,0,0,0)',
+                transparentCorners: false,
+                hasRotatingPoint : false,
+            });
+            
+            canvas.add(rect);
+        }
+        else{
+            isDown = false;
+            //Programmatically activate object when clicking on them
+            id = canvas.getObjects().indexOf(o.target);
+            canvas.setActiveObject(canvas.item(id));
+        }
+    });
+    
+    canvas.on('object:moving', function(o){
+        preventDragOffCanvas(o);
+    });
+    canvas.on('object:moved', function(o){
+        updateRecipientsTags();
+    });
+    
+    
+    canvas.on('object:scaling', function(o){
+        preventDragOffCanvas(o);
+    });    
+    canvas.on('object:scaled', function(o){
+        preventDragOffCanvas(o);
+        getTagFromRectangle(o, "test");
+        updateRecipientsTags();
+    });
+    
+    canvas.on('mouse:move', function(o){
+        if (!isDown) return;
+        var pointer = canvas.getPointer(o.e);
+        
+        if(origX>pointer.x){
+            rect.set({ left: Math.abs(pointer.x) });
+        }
+        if(origY>pointer.y){
+            rect.set({ top: Math.abs(pointer.y) });
+        }
+        
+        rect.set({ width: Math.abs(origX - pointer.x) });
+        rect.set({ height: Math.abs(origY - pointer.y) });
+        
+        if(rect.width > 10 && rect.height > 10){
+            isDragged = true;
+        }
+        
+        
+        canvas.renderAll();
+    });
+    
+    canvas.on('mouse:up', function(o){
+        if(isDown && isDragged){
+            USER_DIALOG.dialog();
+0
+			if (USER_DIALOG.dialog("isOpen")=="true") {
+                return;
+            }		
+			
+            preventDragOffCanvas(rect);
+			resizeRect =  getTagFromRectangle(rect, "test");
+			
+            var text = new fabric.Textbox(" ", {
+                left: rect.left + 5,
+                top: rect.top + 5,
+                fontSize: 16 * scale,
+                hasControls: false,
+                selectable: false,
+                width: rect.width-4,
+                height: rect.height-4,
+                fill: '#000000'
+            });
+        
+            var group = new fabric.Group([rect, text]);
+            group.selectable = false;
+            group.hasControls = true;
+            canvas.add(group);
+			var uuid = new Date().getTime();
+            USER_DIALOG.tag = getTagFromRectangle(group, uuid);
+            
+            $('#first_name, #last_name, #phone, #email').focus().val('').removeClass('valid').removeClass('invalid');
+            $("label[for='first_name'], label[for='last_name']").removeClass('active');
+
+            console.log(USER_DIALOG.tag);
+
+            rect.uuid = uuid;
+            rect.page = PAGE;
+            rect.scale = scale;
+            
+            group.uuid = uuid;
+            group.page = PAGE;
+            group.scale = scale;
+            ELEMENTS[uuid] = group;
+            USER_DIALOG.rect = group;
+
+            USER_DIALOG.dialog({ title: DEFAULT_DIALOG_TITLE, draggable: false });
+            USER_DIALOG.dialog( "open" );    
+            
+            // Hides rotating point
+            hideRotatingPointsForAllObjects(canvas);
+        } else if (isDown && !isDragged){
+            canvas.remove(rect);
+        }
+        isDown = false;
+        isDragged = false;
+    });
+    
+    function preventDragOffCanvas(e){
+        var target = e;
+        if(e.target){
+            target = e.target;
+        }
+       var height = target.height * target.scaleY
+            , width = target.width * target.scaleX
+            , top = target.top
+            , left = target.left
+            , rightBound = canvas.width
+            , bottomBound = canvas.height
+            , modified = false;
+        
+        // don't move off top
+        if(top < 0){
+            top = 0;
+            modified = true;
+        }
+        // don't move off bottom
+        if(top + height > bottomBound){
+            top = bottomBound - height;
+            modified = true;
+        }
+        // don't move off left
+        if(left < 0){
+            left = 0;
+            modified = true;
+        }
+        // don't move off right
+        if(left + width > rightBound){
+            left = rightBound - width;
+            modified = true;
+        }
+    
+        if(modified){
+            target.left=left;
+            target.top=top;
+            return true;
+        }
+        return false;
+    }
+    
+    function updateRecipientsTags(){
+        $.each(RECIPIENTS, function(key, recipient){
+            rectangle = ELEMENTS[recipient.uuid];
+            recipient.fld = getTagFromRectangle(rectangle, recipient.uuid);
+        });
+    }
+    
+    function getTagFromRectangle(rect, uuid){
+        var height = canvas.height / scale;
+        var rect_width = (rect.width * rect.scaleX) / scale;
+        var rect_height = (rect.height * rect.scaleY) / scale;
+        var rect_left = rect.left / scale;
+        var y = height - (rect.top / scale) - rect_height;
+        if (rect_width < 100){
+            rect.set('width', 100 * scale);
+            rect_width = (rect.width * rect.scaleX);
+        }
+
+        if (rect_height < 75){
+            rect.set('height', 75* scale);
+            rect_height = (rect.height * rect.scaleY);
+        }
+        return {
+            x: rect_left,
+            y: y,
+            width: rect_width,
+            height: rect_height,
+            page: PAGE,
+            uuid: uuid,
+            page_height: height
+        };
+    }
+    
+        
+}
+
+function hideRotatingPointsForAllObjects(canvas){
+    $.each(canvas._objects, function(indx, item){
+        item["setControlVisible"]("mtr", false);
+    });
+    canvas.renderAll();
+}
+
+JS;
+
+$this->registerJs($js, \yii\web\View::POS_END);
+
+\pdfjsannotations\PdfjsAnnotationsAssets::register($this);
+
+?>
+<head>
+    <title></title>
+</head>
+<body>
+<div id="outerContainer">
+    <div id="pdf-container"></div>
+</div>
+
+<div class="modal fade" id="dataModal" tabindex="-1" role="dialog" aria-labelledby="dataModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dataModalLabel">PDF annotation data</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+				<pre class="prettyprint lang-json linenums">
+				</pre>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
