@@ -27,6 +27,9 @@ function displayNameOnRectangle(recipient, text) {
     var group = ELEMENTS[recipient.uuid];
     group._objects[1].text = text;
 
+    rows = text.split('\r\n').length + 1;
+
+    group._objects[1].top = group._objects[1].top + group.height - (10 * scale * rows) - 4;
     group.canvas.add(group);
     group.canvas.add(group._objects[1]);
 }
@@ -219,7 +222,10 @@ $(function () {
                 }
 
                 if (recipient) {
-                    text = recipient.data.first_name + " " + recipient.data.last_name;
+                    text = recipient.data.first_name + " " + recipient.data.last_name + "\r\n" + recipient.data.email;
+                    if(recipient.data.phone){
+                        text += "\r\n" + recipient.data.phone;
+                    }
                     displayNameOnRectangle(recipient, text)
                 } else {
                     deleteRow(fld.uuid);

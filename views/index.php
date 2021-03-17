@@ -46,6 +46,10 @@ function initCanvasEvents(canvas, currentPage){
                 width: ((e.width * e.scaleX) / e.scale) * scale - 2,
                 height: ((e.height * e.scaleY) / e.scale) * scale - 2,
                 angle: 0,
+                scaleX: 1,
+                zoomX: 1,
+                scaleY: 1,
+                zoomY: 1,
                 hasControls: false,
                 selectable: false,
                 stroke: 'rgba(255,0,0,1)',
@@ -57,10 +61,12 @@ function initCanvasEvents(canvas, currentPage){
                 hasRotatingPoint : false,
             });
             
+            rows = e._objects[1].text.split('\\r\\n').length + 1;
             var text = new fabric.Textbox(e._objects[1].text, {
                 left: rect.left + 5,
-                top: rect.top + 5,
-                fontSize: 16 *scale,
+                
+                top: rect.top + 5 + (((e.height * e.scaleY) / e.scale) * scale - 2) - (10 * scale * rows) - 4,
+                fontSize: 10 *scale,
                 hasControls: false,
                 selectable: false,
                 width: ((e.width * e.scaleX) / e.scale) * scale - 2,
@@ -74,6 +80,7 @@ function initCanvasEvents(canvas, currentPage){
             var group = new fabric.Group([rect, text]);
             group.selectable = false;
             group.hasControls = true;
+            group.lockScalingFlip = true;
             
             group.page = e.page;
             group.scale = scale;
@@ -117,9 +124,14 @@ function initCanvasEvents(canvas, currentPage){
         }
         else{
             isDown = false;
-            //Programmatically activate object when clicking on them
-            id = canvas.getObjects().indexOf(o.target);
-            canvas.setActiveObject(canvas.item(id));
+            //Programmatically activate group when clicking on them
+            if(o.target.type == "group"){
+                id = canvas.getObjects().indexOf(o.target);
+                canvas.setActiveObject(canvas.item(id));
+            } else if(o.target.type == "textbox"){
+                id = canvas.getObjects().indexOf(o.target.group);
+                canvas.setActiveObject(canvas.item(id));
+            }
         }
     });
     
@@ -132,11 +144,11 @@ function initCanvasEvents(canvas, currentPage){
     
     
     canvas.on('object:scaling', function(o){
-        preventDragOffCanvas(o);
-    });    
+        preventScalingUnderMinSize(o);
+    }); 
+    
     canvas.on('object:scaled', function(o){
-        preventDragOffCanvas(o);
-        getTagFromRectangle(o, "test");
+        preventScalingUnderMinSize(o);
         updateRecipientsTags();
     });
     
@@ -176,7 +188,7 @@ function initCanvasEvents(canvas, currentPage){
             var text = new fabric.Textbox(" ", {
                 left: rect.left + 5,
                 top: rect.top + 5,
-                fontSize: 16 * scale,
+                fontSize: 10 * scale,
                 hasControls: false,
                 selectable: false,
                 width: rect.width-4,
@@ -187,6 +199,7 @@ function initCanvasEvents(canvas, currentPage){
             var group = new fabric.Group([rect, text]);
             group.selectable = false;
             group.hasControls = true;
+            group.lockScalingFlip = true;
             canvas.add(group);
 			var uuid = new Date().getTime();
             USER_DIALOG.tag = getTagFromRectangle(group, uuid);
@@ -217,6 +230,38 @@ function initCanvasEvents(canvas, currentPage){
         isDown = false;
         isDragged = false;
     });
+    
+    function preventScalingUnderMinSize(e){
+        var target = e;
+        if(e.target){
+            target = e.target;
+            if(e.target.group){
+                target = e.target.group;
+            }
+        }
+        var minHeight = 75;
+        var minWidth = 100;
+        var height = canvas.height / scale;
+        var rect_width = (target.width * target.scaleX) / scale;
+        var rect_height = (target.height * target.scaleY) / scale;
+        if(rect_width <= minWidth)
+        {
+            target.set({
+                scaleX: target.old_scaleX,       
+                });
+        }else{
+           target.old_scaleX = target.scaleX;
+        }
+
+        if(rect_height <= minHeight)
+        {
+            target.set({
+                scaleY: target.old_scaleY,
+                });
+        }else{
+           target.old_scaleY = target.scaleY;
+        }
+    }
     
     function preventDragOffCanvas(e){
         var target = e;
@@ -277,7 +322,6 @@ function initCanvasEvents(canvas, currentPage){
             rect.set('width', 100 * scale);
             rect_width = (rect.width * rect.scaleX);
         }
-
         if (rect_height < 75){
             rect.set('height', 75* scale);
             rect_height = (rect.height * rect.scaleY);
