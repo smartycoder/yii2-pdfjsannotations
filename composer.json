@@ -1,5 +1,5 @@
 {
-    "name": "pdfjsannotations/yii2-pdfjsannotations",
+    "name": "smartysoft/yii2-pdfjsannotations",
     "description": "Pdsjs Annotations = FabricJS + PDFjs + jsPDF",
     "type": "yii2-extension",
     "keywords": ["yii2","extension"],
@@ -15,7 +15,7 @@
     },
     "autoload": {
         "psr-4": {
-            "pdfjsannotations\\": ""
+            "smartysoft\\": ""
         }
     }
 }
