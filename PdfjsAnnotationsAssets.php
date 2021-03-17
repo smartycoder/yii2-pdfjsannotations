@@ -16,7 +16,7 @@ class PdfjsAnnotationsAssets extends AssetBundle
 
 //    public $basePath = '@webroot';
 //    public $baseUrl = '@web';
-    public $sourcePath = '@vendor/pdfjsannotations/yii2-pdfjsannotations';
+    public $sourcePath = '@vendor/smartysoft/yii2-pdfjsannotations';
 
     public $css = [
         'views/site.css',
