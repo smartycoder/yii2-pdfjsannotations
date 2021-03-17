@@ -12,13 +12,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist pdfjsannotations/yii2-pdfjsannotations "*"
+php composer.phar require --prefer-dist smartysoft/yii2-pdfjsannotations "*"
 ```
 
 or add
 
 ```
-"pdfjsannotations/yii2-pdfjsannotations": "*"
+"smartysoft/yii2-pdfjsannotations": "*"
 ```
 
 to the require section of your `composer.json` file.
@@ -30,4 +30,4 @@ Usage
 Once the extension is installed, simply use it in your code by :
 
 ```php
-<?= \pdfjsannotations\AutoloadExample::widget(); ?>```
+<?= \smartysoft\AutoloadExample::widget(); ?>```
