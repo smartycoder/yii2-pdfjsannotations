@@ -351,7 +351,7 @@ JS;
 
 $this->registerJs($js, \yii\web\View::POS_END);
 
-\pdfjsannotations\PdfjsAnnotationsAssets::register($this);
+\smartysoft\PdfjsAnnotationsAssets::register($this);
 
 ?>
 <head>

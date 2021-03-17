@@ -1,6 +1,6 @@
 <?php
 
-namespace pdfjsannotations;
+namespace smartysoft;
 
 /**
  * This is just an example.
