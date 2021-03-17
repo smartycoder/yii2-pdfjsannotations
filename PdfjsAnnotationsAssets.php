@@ -1,7 +1,7 @@
 <?php
 
 
-namespace pdfjsannotations;
+namespace smartysoft;
 
 use borales\extensions\phoneInput\PhoneInputAsset;
 use common\helpers\FileHelper;
