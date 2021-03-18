@@ -150,6 +150,7 @@ function initCanvasEvents(canvas, currentPage){
     canvas.on('object:scaled', function(o){
         preventScalingUnderMinSize(o);
         updateRecipientsTags();
+        // resizeAndRemoveScale(o);
     });
     
     canvas.on('mouse:move', function(o){
@@ -230,6 +231,37 @@ function initCanvasEvents(canvas, currentPage){
         isDown = false;
         isDragged = false;
     });
+    
+    //in progress
+//    function resizeAndRemoveScale(e){
+//         var o = e.target;
+//         var scaleX = o.scaleX;
+//         var scaleY = o.scaleY;
+//         o.set('width', o.width * scaleX);
+//         o.set('height', o.height * scaleY);
+//         o.set('scaleX', 1);
+//         o.set('scaleY', 1);
+//         o.set('zoomX', 1);
+//         o.set('zoomY', 1);
+//        
+//         $.each(o._objects, function(index, element){
+//             var width_change =(element.width - (element.width * scaleX))/2;
+//             var height_change = (element.height - (element.height * scaleY))/2;
+//             element.set('width', element.width * scaleX);
+//             element.set('height', element.height * scaleY);
+//             element.set('top', element.top + height_change);
+//             element.set('left', element.left + width_change);
+//             element.set('scaleX', 1);
+//             element.set('scaleY', 1);
+//             element.set('zoomX', 1);
+//             element.set('zoomY', 1);
+//             if(element.type == "textBox"){
+//                 debugger;
+//                 rows = element.text.split('\\r\\n').length + 1;
+//                 element.set('top', element.top + 5 + (((o.height * o.scaleY) / o.scale) * scale - 2) - (10 * scale * rows) - 4,);
+//             }
+//         });
+//    }
     
     function preventScalingUnderMinSize(e){
         var target = e;
