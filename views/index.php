@@ -220,7 +220,7 @@ function initCanvasEvents(canvas, currentPage){
             ELEMENTS[uuid] = group;
             USER_DIALOG.rect = group;
 
-            USER_DIALOG.dialog({ title: DIALOG_TITLE_DEFAULT, draggable: false });
+            USER_DIALOG.dialog({ title: DEFAULT_DIALOG_TITLE, draggable: false });
             USER_DIALOG.dialog( "open" );    
             
             // Hides rotating point

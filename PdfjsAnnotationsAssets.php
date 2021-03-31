@@ -38,6 +38,7 @@ class PdfjsAnnotationsAssets extends AssetBundle
         'assets/prettify.min.js',
         'assets/materialize.min.js',
 
+        'views/app.js',
         'assets/pdfjsAnnotations/pdfannotate.js',
         'assets/pdfjsAnnotations/arrow.fabric.js',
         'assets/pdfjsAnnotations/script.js',
