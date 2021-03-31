@@ -178,7 +178,7 @@ function initCanvasEvents(canvas, currentPage){
     canvas.on('mouse:up', function(o){
         if(isDown && isDragged){
             USER_DIALOG.dialog();
-0
+
 			if (USER_DIALOG.dialog("isOpen")=="true") {
                 return;
             }		
@@ -232,33 +232,35 @@ function initCanvasEvents(canvas, currentPage){
         isDragged = false;
     });
     
-    //in progress
+    //WIP
 //    function resizeAndRemoveScale(e){
 //         var o = e.target;
 //         var scaleX = o.scaleX;
 //         var scaleY = o.scaleY;
+//         console.log(o.height);
 //         o.set('width', o.width * scaleX);
 //         o.set('height', o.height * scaleY);
 //         o.set('scaleX', 1);
 //         o.set('scaleY', 1);
 //         o.set('zoomX', 1);
 //         o.set('zoomY', 1);
+//         console.log(o.height);
 //        
 //         $.each(o._objects, function(index, element){
 //             var width_change =(element.width - (element.width * scaleX))/2;
 //             var height_change = (element.height - (element.height * scaleY))/2;
-//             element.set('width', element.width * scaleX);
-//             element.set('height', element.height * scaleY);
+//             element.set('width', o.width);
+//             element.set('height', o.height);
 //             element.set('top', element.top + height_change);
 //             element.set('left', element.left + width_change);
 //             element.set('scaleX', 1);
 //             element.set('scaleY', 1);
 //             element.set('zoomX', 1);
 //             element.set('zoomY', 1);
-//             if(element.type == "textBox"){
-//                 debugger;
-//                 rows = element.text.split('\\r\\n').length + 1;
-//                 element.set('top', element.top + 5 + (((o.height * o.scaleY) / o.scale) * scale - 2) - (10 * scale * rows) - 4,);
+//             debugger;
+//             if(element.type == "textbox"){
+//                 var rows = element.text.split('\\r\\n').length + 1;
+//                 element.set('top', element.top + (o.height - (10 * scale * rows) - 4));
 //             }
 //         });
 //    }
@@ -271,7 +273,7 @@ function initCanvasEvents(canvas, currentPage){
                 target = e.target.group;
             }
         }
-        var minHeight = 75;
+        var minHeight = 40;
         var minWidth = 100;
         var height = canvas.height / scale;
         var rect_width = (target.width * target.scaleX) / scale;
@@ -354,8 +356,8 @@ function initCanvasEvents(canvas, currentPage){
             rect.set('width', 100 * scale);
             rect_width = (rect.width * rect.scaleX);
         }
-        if (rect_height < 75){
-            rect.set('height', 75* scale);
+        if (rect_height < 40){
+            rect.set('height', 40* scale);
             rect_height = (rect.height * rect.scaleY);
         }
         return {
