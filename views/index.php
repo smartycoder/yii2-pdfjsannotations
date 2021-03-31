@@ -273,7 +273,7 @@ function initCanvasEvents(canvas, currentPage){
                 target = e.target.group;
             }
         }
-        var minHeight = 50;
+        var minHeight = 40;
         var minWidth = 100;
         var height = canvas.height / scale;
         var rect_width = (target.width * target.scaleX) / scale;
@@ -356,8 +356,8 @@ function initCanvasEvents(canvas, currentPage){
             rect.set('width', 100 * scale);
             rect_width = (rect.width * rect.scaleX);
         }
-        if (rect_height < 50){
-            rect.set('height', 50* scale);
+        if (rect_height < 40){
+            rect.set('height', 40* scale);
             rect_height = (rect.height * rect.scaleY);
         }
         return {
