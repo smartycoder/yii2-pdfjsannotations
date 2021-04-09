@@ -203,7 +203,7 @@ function initCanvasEvents(canvas, currentPage){
     canvas.on('mouse:up', function(o){
         if(isDown && isDragged){
             USER_DIALOG.dialog();
-0
+
 			if (USER_DIALOG.dialog("isOpen")=="true") {
                 return;
             }		
