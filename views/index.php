@@ -4,7 +4,7 @@
 /* @var $pdfFilePath string */
 
 $js = <<<JS
-
+ELEMENTS = {};
 PAGE = 0;
 var scale = 0;
 var pdf = null;
