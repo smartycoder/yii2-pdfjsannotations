@@ -4,7 +4,7 @@
 /* @var $pdfFilePath string */
 
 $js = <<<JS
-ELEMENTS = {};
+
 PAGE = 0;
 var scale = 0;
 var pdf = null;
@@ -34,6 +34,9 @@ $("select.scale").change(function (){
 
 
 function initCanvasEvents(canvas, currentPage){
+     try{
+         initElementsFromTags();
+     }catch (e){}
      $.each(ELEMENTS, function(i,e){
          if(currentPage+1 == e.page){
             rect = new fabric.Rect({
@@ -60,31 +63,53 @@ function initCanvasEvents(canvas, currentPage){
                 transparentCorners: false,
                 hasRotatingPoint : false,
             });
-            
-            rows = e._objects[1].text.split('\\r\\n').length + 1;
-            var text = new fabric.Textbox(e._objects[1].text, {
-                left: rect.left + 5,
-                
-                top: rect.top + 5 + (((e.height * e.scaleY) / e.scale) * scale - 2) - (10 * scale * rows) - 4,
-                fontSize: 10 *scale,
-                hasControls: false,
-                selectable: false,
-                width: ((e.width * e.scaleX) / e.scale) * scale - 2,
-                height: ((e.height * e.scaleY) / e.scale) * scale - 2,
-                
-                fill: '#000000'
-            });
+            if(e._objects){
+                rows = e._objects[1].text.split('\\n').length + 1;
+                var text = new fabric.Textbox(e._objects[1].text, {
+                    left: rect.left + 5,
+                    
+                    top: rect.top + 5 + (((e.height * e.scaleY) / e.scale) * scale - 2) - (10 * scale * rows) - 4,
+                    fontSize: 10 * scale,
+                    hasControls: false,
+                    selectable: false,
+                    width: ((e.width * e.scaleX) / e.scale) * scale - 2,
+                    height: ((e.height * e.scaleY) / e.scale) * scale - 2,
+                    
+                    fill: '#000000'
+                });
+            }else{
+                rows = e.objects[1].text.split('\\n').length + 1;
+                var text = new fabric.Textbox(e.objects[1].text, {
+                    left: rect.left + 5,
+                    
+                    top: rect.top + 5 + (((e.height * e.scaleY) / e.scale) * scale - 2) - (10 * scale * rows) - 4,
+                    fontSize: 10 *scale,
+                    hasControls: false,
+                    selectable: false,
+                    width: ((e.width * e.scaleX) / e.scale) * scale - 2,
+                    height: ((e.height * e.scaleY) / e.scale) * scale - 2,
+                    
+                    fill: '#000000'
+                });
+            }
             canvas.add(rect);
             canvas.add(text);
         
             var group = new fabric.Group([rect, text]);
             group.selectable = false;
-            group.hasControls = true;
             group.lockScalingFlip = true;
             
             group.page = e.page;
             group.scale = scale;
             group.uuid = e.uuid;
+            
+            if(e.disabled){
+                group.hasControls = false;
+                group.disabled = true;
+            }else{
+                group.hasControls = true;
+            }
+            
             canvas.add(group);
             
             ELEMENTS[i] = group;
@@ -125,7 +150,7 @@ function initCanvasEvents(canvas, currentPage){
         else{
             isDown = false;
             //Programmatically activate group when clicking on them
-            if(o.target.type == "group"){
+            if(o.target.type == "group" && !o.target.disabled){
                 id = canvas.getObjects().indexOf(o.target);
                 canvas.setActiveObject(canvas.item(id));
             } else if(o.target.type == "textbox"){
@@ -178,7 +203,7 @@ function initCanvasEvents(canvas, currentPage){
     canvas.on('mouse:up', function(o){
         if(isDown && isDragged){
             USER_DIALOG.dialog();
-
+0
 			if (USER_DIALOG.dialog("isOpen")=="true") {
                 return;
             }		
@@ -232,35 +257,33 @@ function initCanvasEvents(canvas, currentPage){
         isDragged = false;
     });
     
-    //WIP
+    //in progress
 //    function resizeAndRemoveScale(e){
 //         var o = e.target;
 //         var scaleX = o.scaleX;
 //         var scaleY = o.scaleY;
-//         console.log(o.height);
 //         o.set('width', o.width * scaleX);
 //         o.set('height', o.height * scaleY);
 //         o.set('scaleX', 1);
 //         o.set('scaleY', 1);
 //         o.set('zoomX', 1);
 //         o.set('zoomY', 1);
-//         console.log(o.height);
 //        
 //         $.each(o._objects, function(index, element){
 //             var width_change =(element.width - (element.width * scaleX))/2;
 //             var height_change = (element.height - (element.height * scaleY))/2;
-//             element.set('width', o.width);
-//             element.set('height', o.height);
+//             element.set('width', element.width * scaleX);
+//             element.set('height', element.height * scaleY);
 //             element.set('top', element.top + height_change);
 //             element.set('left', element.left + width_change);
 //             element.set('scaleX', 1);
 //             element.set('scaleY', 1);
 //             element.set('zoomX', 1);
 //             element.set('zoomY', 1);
-//             debugger;
-//             if(element.type == "textbox"){
-//                 var rows = element.text.split('\\r\\n').length + 1;
-//                 element.set('top', element.top + (o.height - (10 * scale * rows) - 4));
+//             if(element.type == "textBox"){
+//                 debugger;
+//                 rows = element.text.split('\\r\\n').length + 1;
+//                 element.set('top', element.top + 5 + (((o.height * o.scaleY) / o.scale) * scale - 2) - (10 * scale * rows) - 4,);
 //             }
 //         });
 //    }
@@ -347,17 +370,18 @@ function initCanvasEvents(canvas, currentPage){
     }
     
     function getTagFromRectangle(rect, uuid){
-        var height = canvas.height / scale;
+        var canvas_height = canvas.height / scale;
+        var canvas_width = canvas.width / scale;
         var rect_width = (rect.width * rect.scaleX) / scale;
         var rect_height = (rect.height * rect.scaleY) / scale;
         var rect_left = rect.left / scale;
-        var y = height - (rect.top / scale) - rect_height;
+        var y = canvas_height - (rect.top / scale) - rect_height;
         if (rect_width < 100){
             rect.set('width', 100 * scale);
             rect_width = (rect.width * rect.scaleX);
         }
         if (rect_height < 40){
-            rect.set('height', 40* scale);
+            rect.set('height', 40 * scale);
             rect_height = (rect.height * rect.scaleY);
         }
         return {
@@ -367,7 +391,8 @@ function initCanvasEvents(canvas, currentPage){
             height: rect_height,
             page: PAGE,
             uuid: uuid,
-            page_height: height
+            page_height: canvas_height,
+            page_width: canvas_width
         };
     }
     
