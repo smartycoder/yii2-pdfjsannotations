@@ -9,6 +9,9 @@ PAGE = 0;
 var scale = 0;
 var pdf = null;
 
+PDFAnnotate.ready = function () {
+    console.log("Plugin initialized successfully. You can override this function by calling PDFAnnotate.ready = function() {}");  
+};
 
 function initPdf(scale){
     pdf = new PDFAnnotate("pdf-container", "$pdfFilePath", {
@@ -17,7 +20,9 @@ function initPdf(scale){
           console.log(page, oldData, newData);
       },
       ready() {
-        console.log("Plugin initialized successfully");
+          if (PDFAnnotate.ready) {
+            PDFAnnotate.ready();
+          }
       },
       scale: scale,
       pageImageCompression: 'MEDIUM', // FAST, MEDIUM, SLOW(Helps to control the new PDF file size)
