@@ -4,7 +4,6 @@
 /* @var $pdfFilePath string */
 
 $js = <<<JS
-ELEMENTS = {};
 PAGE = 0;
 var scale = 0;
 var pdf = null;
@@ -35,8 +34,11 @@ $("select.scale").change(function (){
 
 function initCanvasEvents(canvas, currentPage){
      try{
-         initElementsFromTags();
+         if($.isEmptyObject(ELEMENTS)){
+             initElementsFromTags();
+         }
      }catch (e){}
+     let elements_copy = {};
      $.each(ELEMENTS, function(i,e){
          if(currentPage+1 == e.page){
             rect = new fabric.Rect({
@@ -103,6 +105,8 @@ function initCanvasEvents(canvas, currentPage){
             group.scale = scale;
             group.uuid = e.uuid;
             
+            group.canvas = canvas;
+            
             if(e.disabled){
                 group.hasControls = false;
                 group.disabled = true;
@@ -111,6 +115,7 @@ function initCanvasEvents(canvas, currentPage){
             }
             
             canvas.add(group);
+            canvas.renderAll();
             
             ELEMENTS[i] = group;
          }
@@ -153,6 +158,11 @@ function initCanvasEvents(canvas, currentPage){
             if(o.target.type == "group" && !o.target.disabled){
                 id = canvas.getObjects().indexOf(o.target);
                 canvas.setActiveObject(canvas.item(id));
+                try{
+                    highlightSignature(o.target.uuid);
+                }catch(e){ 
+                     console.log(e);
+                }
             } else if(o.target.type == "textbox"){
                 id = canvas.getObjects().indexOf(o.target.group);
                 canvas.setActiveObject(canvas.item(id));
@@ -164,9 +174,14 @@ function initCanvasEvents(canvas, currentPage){
         preventDragOffCanvas(o);
     });
     canvas.on('object:moved', function(o){
-        updateRecipientsTags();
+        updateRecipientsTag(o.target);
     });
     
+    canvas.on('selection:cleared',  function(o){
+        try{
+            highlightSignature();
+        }catch(e){ }
+    });
     
     canvas.on('object:scaling', function(o){
         preventScalingUnderMinSize(o);
@@ -174,7 +189,7 @@ function initCanvasEvents(canvas, currentPage){
     
     canvas.on('object:scaled', function(o){
         preventScalingUnderMinSize(o);
-        updateRecipientsTags();
+        updateRecipientsTag(o.target);
         // resizeAndRemoveScale(o);
     });
     
@@ -362,11 +377,8 @@ function initCanvasEvents(canvas, currentPage){
         return false;
     }
     
-    function updateRecipientsTags(){
-        $.each(RECIPIENTS, function(key, recipient){
-            rectangle = ELEMENTS[recipient.uuid];
-            recipient.fld = getTagFromRectangle(rectangle, recipient.uuid);
-        });
+    function updateRecipientsTag(group){
+        updateTagPosition(getTagFromRectangle(group, group.uuid));
     }
     
     function getTagFromRectangle(rect, uuid){
